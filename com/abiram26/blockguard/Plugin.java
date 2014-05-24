@@ -70,8 +70,9 @@ public class Plugin extends MBServerPlugin {
 						+ ((Config) this.getConfig()).getRegions().size()
 						+ " region(s)...");
 	}
-	public void makeBorder(Player player1){
-		player1.clearLines(true);
+
+	public void makeBorder(Player player1) {
+		player1.clearLines(false);
 		if ((player1.getMetaData("BlockGuardX1", null) != player1.getMetaData(
 				"BlockGuardX2", null))
 				&& player1.getMetaData("BlockGuardX2", null) != null) {
@@ -157,20 +158,20 @@ public class Plugin extends MBServerPlugin {
 			UILine top3 = new UILine(loc4, loc8);
 			UILine top4 = new UILine(loc7, loc8);
 
-			player1.drawLine(bottom1);
-			player1.drawLine(bottom2);
-			player1.drawLine(bottom3);
-			player1.drawLine(bottom4);
+			player1.drawLine(bottom1, false);
+			player1.drawLine(bottom2, false);
+			player1.drawLine(bottom3, false);
+			player1.drawLine(bottom4, false);
 
-			player1.drawLine(side1);
-			player1.drawLine(side2);
-			player1.drawLine(side3);
-			player1.drawLine(side4);
+			player1.drawLine(side1, false);
+			player1.drawLine(side2, false);
+			player1.drawLine(side3, false);
+			player1.drawLine(side4, false);
 
-			player1.drawLine(top1);
-			player1.drawLine(top2);
-			player1.drawLine(top3);
-			player1.drawLine(top4);
+			player1.drawLine(top1, false);
+			player1.drawLine(top2, false);
+			player1.drawLine(top3, false);
+			player1.drawLine(top4, true);
 		}
 	}
 }
