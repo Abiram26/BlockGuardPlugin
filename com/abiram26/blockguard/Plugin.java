@@ -21,12 +21,6 @@ public class Plugin extends MBServerPlugin {
 
 	public final static String stamp = "[BlockGuard] ";
 
-	// Permissions
-	// abiram26.blockguard.set [remove+pos1+pos2+set]
-	// abiram26.blockguard.* [all]
-	// abiram26.blockguard.canbuild [build in protected area]
-	// abiram26.blockguard.canpvp [pvp in protected area]
-
 	@Override
 	public void onEnable() {
 		this.getConfig();
