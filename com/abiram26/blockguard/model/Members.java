@@ -16,7 +16,7 @@ public class Members {
 
 	public ArrayList<String> memberList;
 
-	public Members(String ownerName) {
+	public Members(final String ownerName) {
 		this.memberList = new ArrayList<String>();
 		this.memberList.add(ownerName);
 	}
@@ -25,9 +25,9 @@ public class Members {
 		return memberList;
 	}
 
-	public int hasMember(String inputName) {
+	public int hasMember(final String inputName) {
 		for (int x = 0; x < this.memberList.size(); x++) {
-			if (this.memberList.get(x).contentEquals(inputName) ) {
+			if (this.memberList.get(x).equalsIgnoreCase(inputName) ) {
 				return x;
 			}
 		}
@@ -36,7 +36,7 @@ public class Members {
 
 	}
 
-	public void addMember(String inputName) {
+	public void addMember(final String inputName) {
 		this.memberList.add(inputName);
 	}
 
