@@ -1,34 +1,33 @@
 package com.abiram26.blockguard.commands;
 
-import com.abiram26.blockguard.Config;
 import com.abiram26.blockguard.Plugin;
+import com.abiram26.blockguard.storage.Config;
 import com.mbserver.api.CommandExecutor;
 import com.mbserver.api.CommandSender;
 
 public class RemRegion implements CommandExecutor {
 	private final Plugin plugin;
-	private final Config getConfig;
 
-	public RemRegion(Plugin plugin) {
+	public RemRegion(final Plugin plugin) {
 		// TODO Auto-generated constructor stub
 		this.plugin = plugin;
-		this.getConfig = this.plugin.getConfig();
 	}
 
 	@Override
-	public void execute(String command, CommandSender sender, String[] args,
-			String label) {
+	public void execute(final String command,final CommandSender sender,final String[] args,
+			final String label) {
 		// TODO Auto-generated method stub
 		final int regionId;
 		if (sender.hasPermission("abiram26.blockguard.*")) {
 
 			if (args.length == 1) {
-				regionId = this.getConfig.hasRegion(args[0].toLowerCase());
+				final Config cfg = this.plugin.getConfig();
+				regionId = cfg.hasRegion(args[0]);
 				if (regionId != -1) {
-					final String regionName = this.getConfig.getRegions()
+					final String regionName = cfg.getRegions()
 							.get(regionId).getRegionName();
-					this.getConfig.getRegions().remove(regionId);
-					this.getConfig.getMembers().remove(regionId);
+					cfg.getRegions().remove(regionId);
+					cfg.getMembers().remove(regionId);
 					this.plugin.saveConfig();
 					sender.sendMessage(Plugin.stamp + "Removed region "
 							+ regionName);
