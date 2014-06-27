@@ -1,171 +1,146 @@
 package com.abiram26.blockguard;
 
+import java.util.logging.Logger;
+
 import com.abiram26.blockguard.commands.AddMember;
 import com.abiram26.blockguard.commands.Information;
-import com.abiram26.blockguard.commands.Position1;
-import com.abiram26.blockguard.commands.Position2;
+import com.abiram26.blockguard.commands.Position;
+import com.abiram26.blockguard.commands.RegionList;
 import com.abiram26.blockguard.commands.RemMember;
 import com.abiram26.blockguard.commands.RemRegion;
 import com.abiram26.blockguard.commands.SetProtect;
+import com.abiram26.blockguard.commands.Wand;
 import com.abiram26.blockguard.events.BlockEventHandler;
 import com.abiram26.blockguard.events.PvpHandler;
-import com.mbserver.api.Constructors;
+import com.abiram26.blockguard.events.ServerStartedListener;
+import com.abiram26.blockguard.events.WandHandler;
+import com.abiram26.blockguard.storage.Config;
 import com.mbserver.api.MBServerPlugin;
 import com.mbserver.api.Manifest;
-import com.mbserver.api.dynamic.UILine;
-import com.mbserver.api.game.Location;
-import com.mbserver.api.game.Player;
+import com.mbserver.api.PluginManager;
+import com.mbserver.api.Server;
 
 @Manifest(name = "BlockGuard", authors = "Abiram26", config = Config.class)
 public class Plugin extends MBServerPlugin {
 
 	public final static String stamp = "[BlockGuard] ";
+	private boolean hasWE = false;
+	private int wandPos1Id = -1;
+	private int wandPos2Id = -1;
+
+	// Permissions
+	// abiram26.blockguard.set [remove+pos1+pos2+set]
+	// abiram26.blockguard.* [all]
+	// abiram26.blockguard.canbuild [build in protected area]
+	// abiram26.blockguard.canpvp [pvp in protected area]
 
 	@Override
 	public void onEnable() {
+		final PluginManager pM = this.getPluginManager();
+		final Logger log1 = this.getLogger();
+
+		// Load Config
 		this.getConfig();
 		this.saveConfig();
 
-		this.getServer()
-				.getLogger()
-				.info(Plugin.stamp
-						+ ((Config) this.getConfig()).getRegions().size()
-						+ " region(s) loaded!");
+		final Config cfg = this.<Config> getConfig();
+		log1.info(Plugin.stamp + cfg.getRegions().size() + " region(s) loaded!");
 
-		this.getPluginManager().registerEventHandler(
-				new BlockEventHandler((Config) this.getConfig()));
-		this.getPluginManager().registerEventHandler(
-				new PvpHandler((Config) this.getConfig()));
-		this.getPluginManager().registerCommand("blockguard",
-				new String[] { "bg" }, new Information());
-		this.getPluginManager().registerCommand("blockguardposition1",
-				new String[] { "bgpos1" }, new Position1(this));
-		this.getPluginManager().registerCommand("blockguardposition2",
-				new String[] { "bgpos2" }, new Position2(this));
-		this.getPluginManager().registerCommand("blockguardset",
-				new String[] { "bgset" }, new SetProtect(this));
-		this.getPluginManager().registerCommand("blockguardaddmember",
+		// Register Handlers
+		pM.registerEventHandler(new BlockEventHandler(cfg));
+
+		pM.registerEventHandler(new PvpHandler(cfg));
+		
+		// Check if MBWorldEdit exists
+		try {
+			Class.forName("com.ikkerens.worldedit.WorldEditPlugin");
+			hasWE = true;
+		} catch (final ClassNotFoundException e) {
+			// hadWE is false by default
+		}
+		
+		// Register MBWorldEdit Handlers if the plugin is installed
+		if (hasWE) {
+			log1.info(Plugin.stamp + "MBWorldEdit found!");
+			log1.info(Plugin.stamp
+					+ "Implementing MBWorldEdit selection tools!");
+			// Register BlockPlaces/BlockBreaks/Command
+			pM.registerEventHandler(new WandHandler(this));
+			// Register ServerStarted
+			pM.registerEventHandler(new ServerStartedListener(this));
+		}
+
+		// Register Commands
+		pM.registerCommand("blockguard", new String[] { "bg" },
+				new Information());
+		pM.registerCommand("blockguardposition1", new String[] { "bgpos1",
+				"blockguardposition2", "bgpos2" }, new Position());
+		pM.registerCommand("blockguardset", new String[] { "bgset" },
+				new SetProtect(this));
+		pM.registerCommand("blockguardaddmember",
 				new String[] { "bgaddmember" }, new AddMember(this));
-		this.getPluginManager().registerCommand("blockguardremovemember",
+		pM.registerCommand("blockguardremovemember",
 				new String[] { "bgremovemember" }, new RemMember(this));
-		this.getPluginManager().registerCommand("blockguardremoveregion",
+		pM.registerCommand("blockguardremoveregion",
 				new String[] { "bgremoveregion" }, new RemRegion(this));
+		pM.registerCommand("blockguardwand", new String[] { "bgwand" },
+				new Wand(this));
+		pM.registerCommand("blockguardregionlist",
+				new String[] { "bgregionlist" }, new RegionList(this));
 
+		// Check if Memberlist size is equal to Regions size
+		final int memSize = cfg.getMembers().size();
+		final int regSize = cfg.getRegions().size();
+		if (memSize != regSize) {
+			// Something is wrong here
+			if (memSize > regSize) {
+				for (int x = 0; x < (memSize - regSize); x++) {
+					cfg.getMembers().remove(memSize - (x + 1));
+				}
+			} else {
+				for (int x = 0; x < (regSize - memSize); x++) {
+					cfg.getRegions().remove(regSize - (x + 1));
+				}
+			}
+		}
+	}
+
+	public void setWandPos1Id(int wandPos1Id) {
+		this.wandPos1Id = wandPos1Id;
+	}
+
+	public void setWandPos2Id(int wandPos2Id) {
+		this.wandPos2Id = wandPos2Id;
 	}
 
 	@Override
 	public void onDisable() {
 		// TODO Auto-generated method stub
-		this.getServer().getLogger().info(Plugin.stamp + "Saving region(s)...");
-		this.saveConfig();
-		this.getServer()
-				.getLogger()
-				.info(Plugin.stamp + "Finished saving "
-						+ ((Config) this.getConfig()).getRegions().size()
+		final Server s1 = this.getServer();
+		s1.getLogger().info(Plugin.stamp + "Saving region(s)...");
+
+		s1.getLogger().info(
+				Plugin.stamp + "Finished saving "
+						+ this.<Config> getConfig().getRegions().size()
 						+ " region(s)...");
+		this.saveConfig();
 	}
 
-	public void makeBorder(Player player1) {
-		player1.clearLines(false);
-		if ((player1.getMetaData("BlockGuardX1", null) != player1.getMetaData(
-				"BlockGuardX2", null))
-				&& player1.getMetaData("BlockGuardX2", null) != null) {
-			Location loc1 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ1", null)
-							.floatValue());
-			Location loc2 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ2", null)
-							.floatValue());
-			Location loc3 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ1", null)
-							.floatValue());
-			Location loc4 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ2", null)
-							.floatValue());
-			Location loc5 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ1", null)
-							.floatValue());
-			Location loc6 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY1", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ2", null)
-							.floatValue());
-			Location loc7 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ1", null)
-							.floatValue());
-			Location loc8 = Constructors.newLocation(player1.getLocation()
-					.getWorld(),
-					player1.<Integer> getMetaData("BlockGuardX2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardY2", null)
-							.floatValue(),
-					player1.<Integer> getMetaData("BlockGuardZ2", null)
-							.floatValue());
-			// bottom
-			UILine bottom1 = new UILine(loc1, loc2);
-			UILine bottom2 = new UILine(loc1, loc5);
-			UILine bottom3 = new UILine(loc2, loc6);
-			UILine bottom4 = new UILine(loc5, loc6);
-
-			// side
-			UILine side1 = new UILine(loc1, loc3);
-			UILine side2 = new UILine(loc2, loc4);
-			UILine side3 = new UILine(loc5, loc7);
-			UILine side4 = new UILine(loc6, loc8);
-
-			// top
-			UILine top1 = new UILine(loc3, loc4);
-			UILine top2 = new UILine(loc3, loc7);
-			UILine top3 = new UILine(loc4, loc8);
-			UILine top4 = new UILine(loc7, loc8);
-
-			player1.drawLine(bottom1, false);
-			player1.drawLine(bottom2, false);
-			player1.drawLine(bottom3, false);
-			player1.drawLine(bottom4, false);
-
-			player1.drawLine(side1, false);
-			player1.drawLine(side2, false);
-			player1.drawLine(side3, false);
-			player1.drawLine(side4, false);
-
-			player1.drawLine(top1, false);
-			player1.drawLine(top2, false);
-			player1.drawLine(top3, false);
-			player1.drawLine(top4, true);
-		}
+	public boolean hasMBWorldEditPlugin() {
+		return hasWE;
 	}
+
+	public int getWandPos1Id() {
+		return wandPos1Id;
+	}
+
+	public int getWandPos2Id() {
+		return wandPos2Id;
+	}
+
+	// TO-DO list
+	/**
+	 *  
+	 */
+
 }
