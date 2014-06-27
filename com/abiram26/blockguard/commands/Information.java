@@ -7,8 +7,8 @@ import com.mbserver.api.CommandSender;
 public class Information implements CommandExecutor {
 	
 	@Override
-	public void execute(String command, CommandSender sender, String[] args,
-			String label) {
+	public void execute(final String command, final CommandSender sender, final String[] args,
+			final String label) {
 		// TODO Auto-generated method stub
 		sender.sendMessage(Plugin.stamp+"All commands:");
 		sender.sendMessage("/bg [Shows all commands]");
@@ -17,7 +17,9 @@ public class Information implements CommandExecutor {
 		sender.sendMessage("/bgset <regionname> [Creates a region with you as the owner]");
 		sender.sendMessage("/bgaddmember <regionname> <membername> [Adds a member to a region]");
 		sender.sendMessage("/bgremovemember <regionname> <membername> [Removes a member from a region]");
-		sender.sendMessage("/removeregion <regionname> [Removes a region (and it's members)]");
+		sender.sendMessage("/bgremoveregion <regionname> [Removes a region (and it's members)]");
+		sender.sendMessage("/bgwand [Gives you the MBWorldEdit Wand-blocks]");
+		sender.sendMessage("/bgregionlist [Gives you all regionnames and their owner]");
 	}
 
 }
