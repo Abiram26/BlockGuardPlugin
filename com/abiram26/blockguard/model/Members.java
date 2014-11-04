@@ -11,9 +11,7 @@ import java.util.ArrayList;
  *         this.members.get(x) -> members of region ( where x >=1 )
  * 
  */
-
 public class Members {
-
 	public ArrayList<String> memberList;
 
 	public Members(final String ownerName) {
@@ -25,9 +23,17 @@ public class Members {
 		return memberList;
 	}
 
+	/**
+	 * 
+	 * @param inputName
+	 *            The name of an possible player.
+	 * @return The memberID (or -1 (=false))
+	 */
 	public int hasMember(final String inputName) {
+		
+		
 		for (int x = 0; x < this.memberList.size(); x++) {
-			if (this.memberList.get(x).equalsIgnoreCase(inputName) ) {
+			if (this.memberList.get(x).equalsIgnoreCase(inputName)) {
 				return x;
 			}
 		}
@@ -36,6 +42,10 @@ public class Members {
 
 	}
 
+	/**
+	 * 
+	 * @param inputName Add a member to the memberlist.
+	 */
 	public void addMember(final String inputName) {
 		this.memberList.add(inputName);
 	}
