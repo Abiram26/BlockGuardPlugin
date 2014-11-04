@@ -12,3 +12,8 @@ Do you have any questions? Feel free to ask something here: http://www.space-wal
 Do you see something that can be improved? Feel free to Pull Requests
 
 _______________________________________
+
+Note:
+This plugin is supposed to work without depending on other plugins.
+However, the plugin DOES support MBWorldEdit's Wand Blocks for the convenience of the user.
+This means BlockGuard works without the MBWorldEdit installed and with the MBWorldEdit plugin installed.
