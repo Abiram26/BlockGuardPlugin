@@ -16,4 +16,4 @@ _______________________________________
 Note:
 This plugin is supposed to work without depending on other plugins.
 However, the plugin DOES support MBWorldEdit's Wand Blocks for the convenience of the user.
-This means BlockGuard works without the MBWorldEdit installed and with the MBWorldEdit plugin installed.
+This means BlockGuard works without the MBWorldEdit installed and also works with the MBWorldEdit plugin installed.
